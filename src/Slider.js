@@ -5,8 +5,7 @@ import clsx from "clsx";
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    padding: "20px 0",
-    border: "1px solid"
+    padding: "20px 0"
   },
   slider: {
     height: "400px",
@@ -63,16 +62,36 @@ const useStyles = makeStyles((theme) => ({
     objectFit: "cover",
     userSelect: "none",
     pointerEvents: "none"
+  },
+  label: {
+    display: "flex",
+    fontSize: "1.2rem",
+    alignItems: "center",
+    gap: "8px",
+    marginTop: "2rem"
   }
 }));
 
-export default function Slider(props) {
+export default function Slider() {
   const classes = useStyles();
   const [current, setCurrent] = useState(0);
   const [p1, setP1] = useState();
   const [p2, setP2] = useState();
   const [n1, setN1] = useState();
   const [n2, setN2] = useState();
+
+  // Auto play
+  const [autoPlay, setAutoPlay] = useState(false);
+  useEffect(() => {
+    let timer;
+    if (autoPlay) {
+      setCurrent((c) => getNext(c));
+      timer = setInterval(() => setCurrent((c) => getNext(c)), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [autoPlay]);
+
+  // Update current slide
   useEffect(() => {
     const prev = getPrev(current);
     const next = getNext(current);
@@ -81,6 +100,7 @@ export default function Slider(props) {
     setN1(next);
     setN2(getNext(next));
   }, [current]);
+
   const getNext = (index) => (index + 1) % cards.length;
   const getPrev = (index) => (index - 1 + cards.length) % cards.length;
   const indexToClassName = (index) => {
@@ -101,11 +121,20 @@ export default function Slider(props) {
             key={card.id}
             className={indexToClassName(i)}
             onClick={() => setCurrent(i)}
+            onWheel={() => setCurrent(getNext(i))}
           >
             <img className={classes.image} src={card.src} alt="" />
           </div>
         ))}
       </div>
+      <label className={classes.label}>
+        Auto play
+        <input
+          type="checkbox"
+          value={autoPlay}
+          onChange={() => setAutoPlay((v) => !v)}
+        />
+      </label>
     </div>
   );
 }
